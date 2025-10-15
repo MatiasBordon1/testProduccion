@@ -1,0 +1,48 @@
+/* ===== ProgressBar.css ===== */
+
+/* Contenedor */
+.progress-container {
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 15px 15px;
+  background: #f37021;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  color: #fff;
+  font-family: inherit;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Contenedor del texto */
+.progress-label {
+  display: flex;
+  flex-direction: column; /* 👈 apila los elementos */
+  align-items: center;
+  justify-content: center;
+  gap: 6px; /* espacio entre cada línea */
+}
+
+/* Números arriba */
+.progress-numbers {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* Texto en el medio */
+.progress-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+/* Icono abajo */
+.icon-heart {
+  margin-top: 4px;
+  color: #fff;
+}

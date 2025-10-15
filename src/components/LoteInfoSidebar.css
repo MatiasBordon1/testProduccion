@@ -1,0 +1,46 @@
+.loteinfo-container {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 320px;
+  height: 100vh;
+  background-color: #f5f4f1;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.25);
+  padding: 32px 24px;
+  z-index: 99999;
+  font-family: inherit;
+}
+
+.loteinfo-close {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  font-size: 28px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.loteinfo-price {
+  font-size: 26px;
+  margin: 16px 0 24px;
+  opacity: 0.85;
+}
+
+.loteinfo-cta {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.loteinfo-thanks {
+  font-size: 22px;
+  margin-top: 12px;
+  white-space: pre-line;
+  opacity: 0.9;
+}

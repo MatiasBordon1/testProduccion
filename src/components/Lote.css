@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap');
+
+/* Tooltip sobre el lote (al hacer hover sin mostrar lotes) */
+.tooltip {
+  position: relative;
+  background: linear-gradient(145deg, #ffffff, #e0e0e0);
+  color: #000000;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 1rem;
+  opacity: 0;
+  transform: perspective(300px) rotateX(8deg) scale(0.8);
+  transform-origin: bottom center;
+  animation: tooltip-show 0.2s forwards;
+  margin-bottom: 24px;
+  pointer-events: none;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 12px 8px 0 8px;
+  border-style: solid;
+  border-color: #ffffff transparent transparent transparent;
+}
+
+@keyframes tooltip-show {
+  to {
+    opacity: 1;
+    transform: perspective(300px) rotateX(8deg) scale(1);
+  }
+}
+
+@keyframes tooltip-hide {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: perspective(300px) rotateX(8deg) scale(0.8);
+  }
+}
+
+/* Imagen del corazón encima del lote reservado */
+.lote-heart-img {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Z-index correctos para cada HTML sobre el canvas */
+.lote-label-html { z-index: 1 !important; }
+.tooltip-html    { z-index: 2 !important; }
+
+/* El label se reemplazó por <Text> de drei, pero conservamos por compatibilidad */
+.lote-label {
+  font-size: 6rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #d4af37;
+  user-select: none;
+  pointer-events: none;
+  text-align: center;
+  line-height: 1em;
+  transition: transform 0.3s ease;
+}
+
+.reservado-label {
+  animation: none !important;
+  text-shadow: none !important;
+  color: #f5e9c5;
+}
+
+/* Animaciones (actualmente no activas pero útiles si se desea) */
+@keyframes glowFade {
+  0%, 100% {
+    text-shadow:
+      0 0 4px rgba(212, 175, 55, 0.5),
+      0 0 8px rgba(212, 175, 55, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    text-shadow:
+      0 0 10px rgba(255, 255, 255, 0.6),
+      0 0 18px rgba(212, 175, 55, 0.4);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Responsividad móvil: no afecta directamente pero se conserva */
+@media (max-width: 768px) {
+  .lote-label {
+    font-size: 3rem;
+  }
+}

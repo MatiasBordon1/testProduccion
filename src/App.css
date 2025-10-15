@@ -1,0 +1,177 @@
+/* =========================
+   Variables globales
+   ========================= */
+:root {
+  --reserva-panel-w: 360px;
+
+
+  /* 🎨 Colores por tier */
+  --oro-color: #beab47;
+  --plata-color: #d9d7ce;
+  --bronce-color: #ad956c;
+  --reserved-color: #d32f2f;
+}
+
+/* =========================
+   Fondo y root
+   ========================= */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  text-align: initial;
+}
+
+/* =========================
+   Layout principal
+   ========================= */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  background:
+    linear-gradient(to bottom,#a69d98, #e8e4e1); /* tu gradiente base */
+  
+  position: relative; /* necesario para posicionar el overlay de forma absoluta */
+}
+
+/* Este pseudo-elemento se superpone a .app-container y sirve solo para la trama */
+.app-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 400px; /* altura que ocupa la trama */
+  background: url('./assets/fondo/trama_2_sist_web_opacidad.svg') top repeat-x;
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+
+  /* Aplica el desvanecimiento SOLO a la trama */
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 90%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 90%);
+  mask-repeat: no-repeat;
+  pointer-events: none; /* para que no interfiera con clics */
+  z-index: 0;
+}
+
+/* Asegurá que el contenido vaya arriba del before */
+.app-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+.cancha-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  left: 0;
+  transform: none;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+@media (min-width: 769px) {
+  body.panel-open-desktop .cancha-wrapper {
+    margin-right: var(--reserva-panel-w);
+  }
+}
+
+/* =========================
+   Botones de zoom (Glass style)
+   ========================= */
+.zoom-buttons {
+  position: absolute;
+  bottom: 18px;
+  right: 16px;
+  z-index: 10000;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zoom-buttons button {
+  width: 52px;
+  height: 52px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #eaeaea;
+  background: rgba(18, 18, 18, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s;
+}
+
+.zoom-buttons button:hover {
+  transform: translateY(-1px);
+  background: rgba(24, 24, 24, 0.6);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255,255,255,0.09);
+}
+
+.zoom-buttons button:active {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 5px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* 👉 Mostrar los botones solo en mobile */
+@media (max-width: 768px) {
+  .zoom-buttons {
+    display: flex;
+  }
+}
+
+/* =========================
+   Logo flotante SOLO móvil
+   ========================= */
+.mobile-corner-logo {
+  display: none;
+  position: fixed;
+  top: 10px;
+  right: 16px;
+  width: 44px;
+  height: auto;
+  z-index: 80005;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+}
+
+@media (max-width: 768px) {
+  .mobile-corner-logo {
+    display: block;
+  }
+}
+
+.sidebar-open-mobile .mobile-corner-logo {
+  display: none !important;
+}

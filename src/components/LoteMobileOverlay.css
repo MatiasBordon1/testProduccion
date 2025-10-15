@@ -1,0 +1,96 @@
+.mobile-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.mobile-overlay-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  width: 85%;
+  max-width: 340px;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  font-family: 'Inter', sans-serif;
+  position: relative;
+  color: #111;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #555;
+  cursor: pointer;
+}
+.close-btn:hover { color: #000; }
+
+.lot-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #000;
+}
+
+.tier-tag {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: capitalize;
+  margin-bottom: 10px;
+  color: #000;
+}
+.tier-tag.oro { background: var(--oro-color); }
+.tier-tag.plata { background: var(--plata-color); }
+.tier-tag.bronce { background: var(--bronce-color); }
+
+.lot-price {
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
+  margin: 16px 0;
+}
+
+.buy-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  color: #000;
+}
+.buy-btn.oro { background-color: var(--oro-color); }
+.buy-btn.plata { background-color: var(--plata-color); }
+.buy-btn.bronce { background-color: var(--bronce-color); }
+.buy-btn.reserved {
+  background-color: var(--reserved-color);
+  color: #fff;
+  cursor: default;
+}
+
+.reserved-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 10px;
+}
+
+.reserved-text {
+  font-size: 17px;
+  color: #333;
+  line-height: 1.4;
+  white-space: pre-line;
+}

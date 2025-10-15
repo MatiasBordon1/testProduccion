@@ -1,0 +1,124 @@
+/* Capa del popup (siempre arriba de todo) */
+.thankyou-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 120000;             /* > sidebar, > reserva, > labels */
+  display: flex;
+  background: rgba(9, 66, 147, 0.80);;
+  justify-content: center;
+  align-items: center;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Oscurece el fondo (tapa lo de atrás) */
+.thankyou-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+}
+
+/* Caja del contenido */
+.thankyou-content {
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+
+
+  /* Usamos una var para el padding horizontal y poder “comernoslo” en la banda */
+  --padX: 1.2rem;
+  padding: 1.4rem var(--padX) 1.6rem var(--padX);
+   border-radius: 25px;
+   border-radius: 25px !important;
+   text-align: center;
+   width: min(92vw, 380px);
+   box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+   font-family: inherit;
+}
+
+/* Línea superior (fuera de la franja) */
+.thankyou-topline {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* === Franja de color que ocupa el 100% del ancho total del popup ===
+   Se come el padding horizontal con márgenes negativos y ancho extendido */
+.thankyou-band {
+  display: block;
+  width: calc(100% + (var(--padX) * 2));
+  margin: 0 calc(var(--padX) * -1) 12px;  /* “comer” padding lateral */
+  padding: 0.6rem 1rem;
+  border-radius:0;                    /* alineado al borde interno */
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+  box-sizing: border-box;
+}
+
+
+
+/* Textos */
+.thankyou-subtitle,
+.thankyou-lot {
+
+  color: #111;
+  box-sizing: border-box;
+}
+
+/* Variantes por tier */
+.thankyou-band.oro {
+  background: linear-gradient(135deg, #fff8e1, #ffcc00);
+}
+.thankyou-band.plata {
+  background: linear-gradient(135deg, #f0f0f0, #c0c0c0);
+}
+.thankyou-band.bronce {
+  background: linear-gradient(135deg, #fbe9e7, #cd7f32);
+}
+
+/* Textos */
+.thankyou-subtitle,
+.thankyou-lot,
+.thankyou-footer {
+  margin: 0.35rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.thankyou-footer{
+  color: #244cc6;
+  font-style: italic;
+}
+
+/* Botón cerrar */
+.thankyou-close {
+  margin-top: 0.9rem;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  background: #2b57d4;
+  color: #ffffff;
+  font-size: 1rem;
+  border-radius: 20px;
+  border-radius: 20px !important;
+  cursor: pointer;
+}
+.thankyou-close:hover { background: #244cc6; }
+
+/* Responsive fino */
+@media (max-width: 480px) {
+  .thankyou-content {
+    width: 92vw;
+    --padX: 1rem;                            /* actualiza padding horizontal */
+    padding: 1.2rem var(--padX) 1.4rem var(--padX);
+     border-radius: 0 !important;
+  }
+  .thankyou-band {
+    font-size: 1.6rem;
+    padding: 0.55rem 0.9rem;
+    /* width/margin ya se recalculan por la var --padX */
+  }
+}
