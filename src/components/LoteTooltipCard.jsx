@@ -11,6 +11,14 @@ export default function LoteTooltipCard({
   const isAnonimo = reservedDisplayName === "Anónimo";
   const showReserved = reserved;
 
+  // 🔹 Precio dinámico según tier
+  const precios = {
+    oro: 1000,
+    plata: 600,
+    bronce: 300,
+  };
+  const precio = precios[tier] || 300;
+
   return (
     <div className="tooltip-card-wrapper">
       <div className="tooltip-card">
@@ -28,7 +36,7 @@ export default function LoteTooltipCard({
         {/* ====== Contenido ====== */}
         {!showReserved ? (
           <>
-            <div className="tooltip-price">300</div>
+            <div className="tooltip-price">{precio}</div>
             <button
               className={`tooltip-button ${tier}`}
               onClick={onReservar}

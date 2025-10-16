@@ -18,12 +18,11 @@ const Lote = ({
   reservation,
   isSelected,
   tier = 'bronce',
-  enableHover = false,
 }) => {
   const [hovered, setHovered] = useState(false);
 
   const { scale } = useSpring({
-    scale: isSelected ? 1.4 : 1,
+    scale: isSelected ? 1.1 : 1,
     config: { tension: 150, friction: 12 },
   });
 
@@ -31,19 +30,17 @@ const Lote = ({
   const width = (92 / 10) * LOT_SCALE;
   const depth = (51 / 10) * LOT_SCALE;
 
-  const corners = useMemo(() => ([
-    [-width / 2, -depth / 2],
-    [ width / 2, -depth / 2],
-    [ width / 2,  depth / 2],
-    [-width / 2,  depth / 2],
-  ]), [width, depth]);
-
   if (!visible) return null;
 
+  // 🔹 Texto o nombre mostrado en el lote
   const displayLabel = isReserved
-    ? (reservation?.mostrarComo || reservation?.MostrarComo || reservation?.displayName || 'Reservado')
+    ? (reservation?.mostrarComo ||
+       reservation?.MostrarComo ||
+       reservation?.displayName ||
+       'Reservado')
     : index;
 
+  // 🔹 Color del corazón según tier
   const heartColor = reservation?.heartColor || (tier === 'oro' ? 'naranja' : 'celeste');
 
   const HEART_PATHS = {
@@ -52,12 +49,14 @@ const Lote = ({
   };
   const initialHeartSrc = HEART_PATHS[heartColor]?.[0] || '/assets/cancha/corazon_azul.png';
   const [heartSrc, setHeartSrc] = useState(initialHeartSrc);
+
   const handleHeartError = () => {
     const candidates = HEART_PATHS[heartColor] || [];
     const next = candidates.find(p => p !== heartSrc);
     if (next) setHeartSrc(next);
   };
 
+  // 🔹 Tamaño del texto dinámico
   const calcularFontSize = (texto) => {
     const len = texto?.toString().length || 0;
     if (len <= 6) return 1.2;
@@ -68,6 +67,7 @@ const Lote = ({
 
   return (
     <group position={[x, isSelected ? BASE_Y + 0.5 : BASE_Y, z]}>
+      {/* ==== PLANO BASE DEL LOTE ==== */}
       <animated.mesh
         rotation={[-Math.PI / 2, 0, 0]}
         scale={scale}
@@ -81,8 +81,6 @@ const Lote = ({
           center.y = BASE_Y + 0.2;
           onLoteClick(index, [center.x, center.y, center.z]);
         }}
-        onPointerOver={() => { if (!isReserved) setHovered(true); }}
-        onPointerOut={() => { if (!isReserved) setHovered(false); }}
         style={{ cursor: 'pointer' }}
       >
         <planeGeometry args={[width, depth]} />
@@ -93,6 +91,7 @@ const Lote = ({
         />
       </animated.mesh>
 
+      {/* ==== CORAZÓN DE RESERVA ==== */}
       {!showLotes && isReserved && (
         <Html
           position={[0, 0.12, 0]}
@@ -114,7 +113,7 @@ const Lote = ({
         </Html>
       )}
 
-      {/* TEXTO DENTRO DEL LOTE */}
+      {/* ==== TEXTO DENTRO DEL LOTE ==== */}
       {showLotes && (
         <Text
           position={[0, 0.05, 0]}
@@ -127,18 +126,6 @@ const Lote = ({
         >
           {displayLabel}
         </Text>
-      )}
-
-      {enableHover && !isReserved && hovered && !showLotes && (
-        <Html
-          position={[0, 2.5, 0]}
-          center
-          wrapperClass="tooltip-html"
-          zIndexRange={[0, 0]}
-          style={{ zIndex: 2, pointerEvents: 'none' }}
-        >
-          <div className="tooltip">{index}</div>
-        </Html>
       )}
     </group>
   );

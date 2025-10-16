@@ -119,38 +119,42 @@ function Scene({
 
       {/* ===== LOTES ===== */}
       {lotes.map((lote) => {
-        const y = 1;
-        const isReserved = reservedLots.includes(lote.id);
-        let tier = 'bronce';
-        if (oroLotes.includes(lote.id)) tier = 'oro';
-        else if (plataLotes.includes(lote.id)) tier = 'plata';
+  const y = 1;
+  const isReserved = reservedLots.includes(lote.id);
+  let tier = 'bronce';
+  if (oroLotes.includes(lote.id)) tier = 'oro';
+  else if (plataLotes.includes(lote.id)) tier = 'plata';
 
-        return (
-          <Lote
-            key={lote.id}
-            index={lote.id}
-            position={[lote.position[0], y, lote.position[2]]}
-            color={lote.color}
-            visible
-            isReserved={isReserved}
-            showLotes={showLotes}
-            reservation={reservedDetails[lote.id]}
-            scale={lote.scale}
-            isSelected={lote.id === selectedLotId}
-            tier={tier}
-            enableHover={false}
-            onLoteClick={(idFromChild, worldPosFromChild) => {
-              if (!groupRef.current) return;
-              setAutoRotate(false);
-              const useId = idFromChild ?? lote.id;
-              const pos = Array.isArray(worldPosFromChild)
-                ? [worldPosFromChild[0], worldPosFromChild[1] + 2.5, worldPosFromChild[2]]
-                : [lote.position[0], 2.5, lote.position[2]];
-              onPreviewRequest(useId, pos);
-            }}
-          />
-        );
-      })}
+  // 🔹 Color según estado
+  const color = isReserved ? '#c0392b' : getColor(lote.id, activeTiers);
+
+  return (
+    <Lote
+      key={lote.id}
+      index={lote.id}
+      position={[lote.position[0], y, lote.position[2]]}
+      color={color}
+      visible
+      isReserved={isReserved}
+      showLotes={showLotes}
+      reservation={reservedDetails[lote.id]}
+      scale={lote.scale}
+      isSelected={lote.id === selectedLotId}
+      tier={tier}
+      enableHover
+      onLoteClick={(idFromChild, worldPosFromChild) => {
+        if (!groupRef.current) return;
+        setAutoRotate(false);
+        const useId = idFromChild ?? lote.id;
+        const pos = Array.isArray(worldPosFromChild)
+          ? [worldPosFromChild[0], worldPosFromChild[1] + 2.5, worldPosFromChild[2]]
+          : [lote.position[0], 2.5, lote.position[2]];
+        onPreviewRequest(useId, pos);
+      }}
+    />
+  );
+})}
+
     </group>
   );
 }

@@ -24,10 +24,9 @@ function App() {
 
   const totalLotCount = 100;
 
-  // Nueva API interna (Vercel)
   const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 
-  // Forzar vista superior en móvil
+  // 🔹 Forzar vista superior en móvil
   useEffect(() => {
     if (isMobile) {
       setTopView(true);
@@ -35,48 +34,49 @@ function App() {
     }
   }, [isMobile]);
 
-  // Cargar reservas existentes desde backend
+  // 🔹 Obtener reservas desde el backend (Google Sheets)
   useEffect(() => {
-    const obtenerReservas = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/reservations`);
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.error || 'Error en backend');
+  const obtenerReservas = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/reservations`);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Error en backend');
 
-        // Adaptar a tu estructura de reserva
-        const filas = data.rows.slice(1); // salta encabezados
-        const lotes = [];
-        const detalles = {};
+      const lotes = [];
+      const detalles = {};
 
-        filas.forEach((r) => {
-          const [timestamp, lote, nombre, correo, telefono, mostrarComo] = r;
-          if (lote) {
-            lotes.push(lote);
-            detalles[lote] = {
-              lote,
-              firstName: nombre,
-              email: correo,
-              phone: telefono,
-              displayName: mostrarComo,
-              anonymous: mostrarComo === 'Anónimo',
-              timestamp,
-            };
-          }
-        });
+      data.rows.forEach((r) => {
+        const { lote, nombre, correo, telefono, mostrarComo, timestamp } = r;
+        if (lote) {
+          const loteId = isNaN(lote) ? lote : parseInt(lote); // 🔹 asegura tipo número
+          lotes.push(loteId);
+          detalles[loteId] = {
+            lote: loteId,
+            firstName: nombre,
+            email: correo,
+            phone: telefono,
+            displayName: mostrarComo,
+            anonymous: mostrarComo === 'Anónimo',
+            timestamp,
+          };
+        }
+      });
 
-        setReservedLots(lotes);
-        setReservedDetails(detalles);
-      } catch (err) {
-        console.error('Error al obtener lotes reservados:', err);
-      }
-    };
-    obtenerReservas();
-  }, []);
+      setReservedLots(lotes);
+      setReservedDetails(detalles);
+      console.log("✅ Reservas cargadas:", lotes.length, lotes);
+    } catch (err) {
+      console.error('Error al obtener lotes reservados:', err);
+    }
+  };
+  obtenerReservas();
+}, []);
 
-  // Selección desde la cancha
+
+  // 🔹 Selección de lote
   const handleSelectLot = (lotId) => setSelectedLot(lotId);
 
-  // Guardar nueva reserva (llamando a backend)
+  // 🔹 Guardar nueva reserva (envía al backend)
   const handleReserve = async (lotId, formData) => {
     if (reservedLots.includes(lotId)) {
       alert('Lote ya reservado');
@@ -84,8 +84,9 @@ function App() {
     }
 
     try {
-      await appendReservation(lotId, formData); // ✅ nueva función backend
+      await appendReservation(lotId, formData); // ✅ llamada a backend
 
+      // ✅ Actualizar estado local
       setReservedLots((prev) => [...prev, lotId]);
       setReservedDetails((prev) => ({
         ...prev,
@@ -97,9 +98,11 @@ function App() {
 
       setSelectedLot(null);
 
+      // Determinar tier
       let tier = 'bronce';
       if (oroLotes.includes(lotId)) tier = 'oro';
       else if (plataLotes.includes(lotId)) tier = 'plata';
+
       setThankYou({ lotId, tier });
     } catch (err) {
       console.error('Error guardando reserva:', err);
@@ -107,6 +110,7 @@ function App() {
     }
   };
 
+  // 🔹 Tiers
   const toggleTier = (tier) =>
     setActiveTiers((prev) => ({ ...prev, [tier]: !prev[tier] }));
 
@@ -125,7 +129,7 @@ function App() {
     bronce: '5% de descuento en cuota social durante todo 2026.',
   };
 
-  // Zoom
+  // 🔹 Zoom manual
   const handleZoomIn = () =>
     window.dispatchEvent(new CustomEvent('app-zoom', { detail: { dir: 'in' } }));
   const handleZoomOut = () =>
@@ -134,6 +138,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="background-layer"></div>
+
       <div className="content-layer">
         <UIControls
           showLotes={showLotes}

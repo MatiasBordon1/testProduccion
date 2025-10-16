@@ -9,6 +9,14 @@ export default function LoteMobileOverlay({
   const { id, tier, reserved, displayName } = preview || {};
   const isAnonimo = displayName === "Anónimo";
 
+  // 🔹 Precios según tier
+  const precios = {
+    oro: 1000,
+    plata: 600,
+    bronce: 300,
+  };
+  const precio = precios[tier] || 300;
+
   return (
     <div className="mobile-overlay-backdrop">
       <div className="mobile-overlay-card">
@@ -20,7 +28,9 @@ export default function LoteMobileOverlay({
           <>
             <div className="lot-title">Lote {id}</div>
             <div className={`tier-tag ${tier}`}>{tier}</div>
-            <div className="lot-price">300 USD</div>
+            <div className="lot-price">
+              {precio} USD
+            </div>
             <button
               className={`buy-btn ${tier}`}
               onClick={onReservar}
