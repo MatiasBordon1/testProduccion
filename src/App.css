@@ -4,7 +4,6 @@
 :root {
   --reserva-panel-w: 360px;
 
-
   /* 🎨 Colores por tier */
   --oro-color: #beab47;
   --plata-color: #d9d7ce;
@@ -15,9 +14,21 @@
 /* =========================
    Fondo y root
    ========================= */
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #eaeaea;
+}
+
+/* 🔧 Fix iPhone Safari “100vh” */
+@supports (-webkit-touch-callout: none) {
+  html,
+  body {
+    height: -webkit-fill-available;
+  }
 }
 
 #root {
@@ -25,8 +36,8 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  max-width: none;
   text-align: initial;
+  max-width: none;
 }
 
 /* =========================
@@ -36,48 +47,46 @@ html, body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-
-  background:
-    linear-gradient(to bottom,#a69d98, #e8e4e1); /* tu gradiente base */
-  
-  position: relative; /* necesario para posicionar el overlay de forma absoluta */
+  background: linear-gradient(to bottom, #a69d98, #e8e4e1);
+  position: relative;
 }
 
-/* Este pseudo-elemento se superpone a .app-container y sirve solo para la trama */
+@supports (-webkit-touch-callout: none) {
+  .app-container {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Trama superior */
 .app-container::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 400px; /* altura que ocupa la trama */
+  height: 400px;
   background: url('./assets/fondo/trama_2_sist_web_opacidad.svg') top repeat-x;
   background-size: auto 100%;
-  background-repeat: repeat-x;
-
-  /* Aplica el desvanecimiento SOLO a la trama */
   mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 90%);
   -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 90%);
-  mask-repeat: no-repeat;
-  pointer-events: none; /* para que no interfiera con clics */
+  pointer-events: none;
   z-index: 0;
 }
 
-/* Asegurá que el contenido vaya arriba del before */
 .app-container > * {
   position: relative;
   z-index: 1;
 }
 
-
+/* =========================
+   Canvas y cancha wrapper
+   ========================= */
 .cancha-wrapper {
   flex: 1;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  left: 0;
-  transform: none;
   width: 100%;
   height: 100%;
 }
@@ -90,6 +99,13 @@ html, body {
   width: 100%;
   height: 100%;
   transition: transform 0.3s ease;
+  overflow: hidden;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .canvas-wrapper {
+    height: -webkit-fill-available;
+  }
 }
 
 @media (min-width: 769px) {
@@ -99,7 +115,7 @@ html, body {
 }
 
 /* =========================
-   Botones de zoom (Glass style)
+   Botones de zoom
    ========================= */
 .zoom-buttons {
   position: absolute;
@@ -144,7 +160,6 @@ html, body {
     inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
-/* 👉 Mostrar los botones solo en mobile */
 @media (max-width: 768px) {
   .zoom-buttons {
     display: flex;
@@ -152,7 +167,7 @@ html, body {
 }
 
 /* =========================
-   Logo flotante SOLO móvil
+   Logo móvil
    ========================= */
 .mobile-corner-logo {
   display: none;
@@ -174,4 +189,47 @@ html, body {
 
 .sidebar-open-mobile .mobile-corner-logo {
   display: none !important;
+}
+
+/* =========================
+   Overlay de reserva
+   ========================= */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 90000;
+}
+
+/* =========================
+   Panel lateral reserva
+   ========================= */
+.popup-reserva {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 360px;
+  height: 100%;
+  background: #f4f4f0;
+  color: black;
+  z-index: 90010;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  font-family: inherit;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.5);
+  transition: transform 0.3s ease;
+}
+
+.popup-reserva.slide-out {
+  transform: translateX(100%);
+}
+
+@media (max-width: 768px) {
+  .popup-reserva {
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    box-shadow: none;
+  }
 }
