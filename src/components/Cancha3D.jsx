@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { MapControls, OrthographicCamera, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -35,14 +35,12 @@ function Scene({
 }) {
   const groupRef = useRef();
 
-  // Reinicia rotación si se desactiva autoRotate
   useEffect(() => {
     if (!autoRotate && groupRef.current && !isMobile) {
       groupRef.current.rotation.y = 0;
     }
   }, [autoRotate, isMobile]);
 
-  // Genera los lotes
   const lotes = useMemo(
     () =>
       crearLotes({
@@ -55,7 +53,6 @@ function Scene({
     [showLotes, activeTiers, onSelectLot, reservedLots]
   );
 
-  // Rotación automática
   useFrame(() => {
     if (!topView && !isMobile && autoRotate && groupRef.current) {
       groupRef.current.rotation.y += 0.002;
@@ -68,6 +65,7 @@ function Scene({
 
   return (
     <group ref={groupRef} position={groupPosition} scale={groupScale} rotation={[0, mobileYRotation, 0]}>
+      {/* === LUCES Y SOMBRAS REALISTAS === */}
       <ambientLight intensity={0.6} />
       <directionalLight
         position={[60, 120, 80]}
@@ -75,9 +73,17 @@ function Scene({
         castShadow={!isMobile && !topView}
         shadow-mapSize-width={4096}
         shadow-mapSize-height={4096}
+        shadow-camera-near={1}
+        shadow-camera-far={400}
+        shadow-camera-left={-150}
+        shadow-camera-right={150}
+        shadow-camera-top={150}
+        shadow-camera-bottom={-150}
+        shadow-bias={-0.0002}
       />
       <hemisphereLight skyColor={'#e3ecff'} groundColor={'#3f3f3f'} intensity={0.4} />
 
+      {/* Piso invisible para recibir sombra */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4, 0]} receiveShadow>
         <planeGeometry args={[400, 400]} />
         <shadowMaterial opacity={0.25} transparent />
@@ -155,27 +161,6 @@ function PopupHtml({ preview, topView, onClose, onReservar }) {
 }
 
 // =====================
-// 📱 Hook: Corrige el viewport y resize
-// =====================
-function useViewportFix() {
-  const { gl, camera } = useThree();
-
-  useEffect(() => {
-    const resize = () => {
-      const { innerWidth, innerHeight, devicePixelRatio } = window;
-      gl.setPixelRatio(devicePixelRatio);
-      gl.setSize(innerWidth, innerHeight);
-      camera.aspect = innerWidth / innerHeight;
-      camera.updateProjectionMatrix();
-    };
-
-    resize();
-    window.addEventListener('resize', resize);
-    return () => window.removeEventListener('resize', resize);
-  }, [gl, camera]);
-}
-
-// =====================
 // Componente principal
 // =====================
 export default function Cancha3D({
@@ -198,7 +183,7 @@ export default function Cancha3D({
   const [zoomLevel, setZoomLevel] = useState(12);
   const [preview, setPreview] = useState(null);
 
-    // 🔧 Ajuste del viewport y cámara en móviles reales (iOS/Android)
+  // 🔧 Ajuste del viewport (solo móviles reales)
   useEffect(() => {
     const handleResize = () => {
       const canvas = document.querySelector('canvas');
@@ -217,7 +202,6 @@ export default function Cancha3D({
     handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
 
   useEffect(() => {
     if (typeof effectiveAutoRotate === 'boolean' && typeof effectiveTopView === 'boolean') setPreview(null);
@@ -245,17 +229,11 @@ export default function Cancha3D({
       <Canvas
         shadows
         camera={{ position: [0, 110, 175], fov: 45 }}
-        onCreated={({ gl, camera }) => {
-          gl.setPixelRatio(window.devicePixelRatio);
-          gl.setSize(window.innerWidth, window.innerHeight);
+        onCreated={({ camera }) => {
           camera.position.set(0, 110, 175);
           camera.lookAt(0, 0, 0);
         }}
-        style={{
-          width: '100%',
-          height: '100vh',
-          touchAction: 'none',
-        }}
+        style={{ width: '100%', height: '100vh' }}
       >
         {isMobile && (
           <>
@@ -266,10 +244,7 @@ export default function Cancha3D({
               zoom={zoomLevel}
               near={0.1}
               far={1000}
-              onUpdate={(c) => {
-                c.lookAt(0, 0, 0);
-                c.rotation.set(-Math.PI / 2, 0, 0);
-              }}
+              onUpdate={(c) => c.lookAt(0, 0, 0)}
             />
             <MapControls
               makeDefault
@@ -280,7 +255,6 @@ export default function Cancha3D({
               target={[0, 0, 0]}
               panSpeed={0.9}
             />
-            <useViewportFix />
           </>
         )}
 
@@ -316,6 +290,7 @@ export default function Cancha3D({
         />
       )}
 
+      {/* Botones de zoom SOLO móviles */}
       {isMobile && (
         <div className="zoom-buttons">
           <button onClick={() => setZoomLevel((z) => Math.max(z - ZOOM_STEP, MIN_ZOOM))}>−</button>
