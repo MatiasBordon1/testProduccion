@@ -126,7 +126,6 @@ body {
   flex-direction: column;
   gap: 10px;
 }
-
 .zoom-buttons button {
   width: 52px;
   height: 52px;

@@ -198,6 +198,27 @@ export default function Cancha3D({
   const [zoomLevel, setZoomLevel] = useState(12);
   const [preview, setPreview] = useState(null);
 
+    // 🔧 Ajuste del viewport y cámara en móviles reales (iOS/Android)
+  useEffect(() => {
+    const handleResize = () => {
+      const canvas = document.querySelector('canvas');
+      if (!canvas) return;
+      const { innerWidth, innerHeight, devicePixelRatio } = window;
+      const renderer = canvas.__r3f?.root?.getState?.()?.gl;
+      const camera = canvas.__r3f?.root?.getState?.()?.camera;
+      if (renderer && camera) {
+        renderer.setPixelRatio(devicePixelRatio);
+        renderer.setSize(innerWidth, innerHeight);
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
   useEffect(() => {
     if (typeof effectiveAutoRotate === 'boolean' && typeof effectiveTopView === 'boolean') setPreview(null);
     if (contactOpen) setPreview(null);
