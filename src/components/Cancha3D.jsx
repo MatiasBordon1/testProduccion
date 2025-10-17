@@ -178,14 +178,40 @@ export default function Cancha3D({
   }, [!!effectiveAutoRotate, !!effectiveTopView, contactOpen]);
 
   const handleZoomChange = (dir) => {
-    const canvas = document.querySelector('canvas');
-    const camera = canvas?.__r3f?.root?.getState?.()?.camera;
-    if (camera) {
-      if (dir === 'in') camera.zoom = Math.min(camera.zoom + ZOOM_STEP, MAX_ZOOM);
-      if (dir === 'out') camera.zoom = Math.max(camera.zoom - ZOOM_STEP, MIN_ZOOM);
+  const canvas = document.querySelector('canvas');
+  const camera = canvas?.__r3f?.root?.getState?.()?.camera;
+
+  if (camera) {
+    // Si la cámara es de tipo PerspectiveCamera (la usada en móviles)
+    if (camera.isPerspectiveCamera) {
+      // Control de límites
+      const minY = 60;  // más cerca = zoom in
+      const maxY = 180; // más lejos = zoom out
+
+      // Movemos la cámara sobre Y (altura) y Z (distancia)
+      if (dir === 'in') {
+        camera.position.y = Math.max(minY, camera.position.y - 10);
+        camera.position.z = Math.max(100, camera.position.z - 15);
+      }
+      if (dir === 'out') {
+        camera.position.y = Math.min(maxY, camera.position.y + 10);
+        camera.position.z = Math.min(250, camera.position.z + 15);
+      }
+
+      // Mantenemos el enfoque en el centro
+      camera.lookAt(0, 0, 0);
       camera.updateProjectionMatrix();
     }
-  };
+
+    // Si fuera ortográfica (por compatibilidad futura)
+    if (camera.isOrthographicCamera) {
+      if (dir === 'in') camera.zoom = Math.min(camera.zoom + 0.5, 5);
+      if (dir === 'out') camera.zoom = Math.max(camera.zoom - 0.5, 1);
+      camera.updateProjectionMatrix();
+    }
+  }
+};
+
 
   const handleLotClickForPreview = (id, positionVec3) => {
     const tier = oroLotes.includes(id)
