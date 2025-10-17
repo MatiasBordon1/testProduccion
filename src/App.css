@@ -118,14 +118,15 @@ body {
    Botones de zoom
    ========================= */
 .zoom-buttons {
+  display: none; /* ✅ ocultos por defecto */
   position: absolute;
   bottom: calc(18px + env(safe-area-inset-bottom));
   right: calc(16px + env(safe-area-inset-right));
   z-index: 10000;
-  display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .zoom-buttons button {
   width: 52px;
   height: 52px;
@@ -159,12 +160,12 @@ body {
     inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
+/* ✅ Solo visibles en pantallas móviles */
 @media (max-width: 768px) {
   .zoom-buttons {
     display: flex;
   }
 }
-
 /* =========================
    Logo móvil
    ========================= */
