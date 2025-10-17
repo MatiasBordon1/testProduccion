@@ -168,6 +168,21 @@ body {
   }
 }
 
+/* Subimos un poco el arranque de los botones en móviles */
+@media (max-width: 768px) {
+  .zoom-buttons {
+    bottom: clamp(88px, 10vh, 140px); /* más arriba y adaptable */
+    right: calc(16px + env(safe-area-inset-right));
+  }
+}
+
+/* Cuando hay popup abierto, escondemos botones y logo para evitar solapes */
+.popup-open .zoom-buttons,
+.popup-open .mobile-corner-logo {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* =========================
    Logo móvil
    ========================= */

@@ -15,6 +15,9 @@
   box-shadow: -4px 0 16px rgba(0,0,0,0.5);
   transition: transform 0.3s ease;
   scroll-behavior: smooth;
+    overscroll-behavior: contain;       /* evita rubber-band que empuja al body */
+  -webkit-overflow-scrolling: touch;  /* scroll suave en iOS */
+  touch-action: pan-y;                 /* sólo desplazamiento vertical */
 }
 
 .popup-reserva.slide-out {
