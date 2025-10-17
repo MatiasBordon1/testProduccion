@@ -166,6 +166,7 @@ body {
     display: flex;
   }
 }
+
 /* =========================
    Logo móvil
    ========================= */
@@ -231,5 +232,35 @@ body {
     width: 100vw;
     height: 100vh;
     box-shadow: none;
+
+    /* 🔹 Nueva estructura interna con scroll */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* 🔹 El formulario será scrolleable */
+  .popup-reserva form {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 90px; /* espacio para el botón fijo */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 🔹 Botón de Reservar fijo abajo */
+  .popup-reserva button[type='submit'] {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    background: #333;
+    border: none;
+    border-top: 2px solid rgba(255,255,255,0.15);
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.25);
+    z-index: 99999;
   }
 }
