@@ -177,40 +177,67 @@ export default function Cancha3D({
     if (contactOpen) setPreview(null);
   }, [!!effectiveAutoRotate, !!effectiveTopView, contactOpen]);
 
-  const handleZoomChange = (dir) => {
-  const canvas = document.querySelector('canvas');
-  const camera = canvas?.__r3f?.root?.getState?.()?.camera;
+  // 🔹 Escucha los eventos de zoom enviados desde App.jsx
+useEffect(() => {
+  const handleZoomEvent = (e) => {
+    const dir = e.detail?.dir;
+    const canvas = document.querySelector('canvas');
+    const camera = canvas?.__r3f?.root?.getState?.()?.camera;
+    const invalidate = canvas?.__r3f?.root?.getState?.()?.invalidate;
 
-  if (camera) {
-    // Si la cámara es de tipo PerspectiveCamera (la usada en móviles)
-    if (camera.isPerspectiveCamera) {
-      // Control de límites
-      const minY = 60;  // más cerca = zoom in
-      const maxY = 180; // más lejos = zoom out
+    if (!camera) return;
 
-      // Movemos la cámara sobre Y (altura) y Z (distancia)
-      if (dir === 'in') {
-        camera.position.y = Math.max(minY, camera.position.y - 10);
-        camera.position.z = Math.max(100, camera.position.z - 15);
-      }
-      if (dir === 'out') {
-        camera.position.y = Math.min(maxY, camera.position.y + 10);
-        camera.position.z = Math.min(250, camera.position.z + 15);
-      }
-
-      // Mantenemos el enfoque en el centro
-      camera.lookAt(0, 0, 0);
-      camera.updateProjectionMatrix();
-    }
-
-    // Si fuera ortográfica (por compatibilidad futura)
     if (camera.isOrthographicCamera) {
-      if (dir === 'in') camera.zoom = Math.min(camera.zoom + 0.5, 5);
-      if (dir === 'out') camera.zoom = Math.max(camera.zoom - 0.5, 1);
+      const minZoom = 4;
+      const maxZoom = 25;
+      const step = 1.5;
+
+      if (dir === 'in') {
+        camera.zoom = Math.min(maxZoom, camera.zoom + step);
+      } else if (dir === 'out') {
+        camera.zoom = Math.max(minZoom, camera.zoom - step);
+      }
+
       camera.updateProjectionMatrix();
+      if (invalidate) invalidate(); // 🔥 fuerza render inmediato
     }
+  };
+
+  window.addEventListener('app-zoom', handleZoomEvent);
+  return () => window.removeEventListener('app-zoom', handleZoomEvent);
+}, []);
+
+
+  const handleZoomChange = (dir) => {
+  // Obtenemos el estado interno real de R3F
+  const state = window.__r3f?.root?.getState?.() || {};
+  const camera = state.camera;
+  const invalidate = state.invalidate;
+
+  if (!camera) return;
+
+  if (camera.isOrthographicCamera) {
+    const minZoom = 2;
+    const maxZoom = 25;
+    const step = 1;
+
+    if (dir === 'in') {
+      camera.zoom = Math.min(maxZoom, camera.zoom + step);
+    } else if (dir === 'out') {
+      camera.zoom = Math.max(minZoom, camera.zoom - step);
+    }
+
+    camera.updateProjectionMatrix();
+    if (invalidate) invalidate(); // 🔥 fuerza render inmediato
+  } else if (camera.isPerspectiveCamera) {
+    // backup en caso de usar perspectiva
+    if (dir === 'in') camera.position.y -= 10;
+    else if (dir === 'out') camera.position.y += 10;
+    camera.updateProjectionMatrix();
+    if (invalidate) invalidate();
   }
 };
+
 
 
   const handleLotClickForPreview = (id, positionVec3) => {
@@ -260,14 +287,15 @@ export default function Cancha3D({
         {/* ✅ Movimiento táctil solo en móviles */}
         {isMobile && (
           <MapControls
-            makeDefault
-            enableRotate={false}
-            enableZoom={false}
-            enablePan
-            screenSpacePanning
-            target={[0, 0, 0]}
-            panSpeed={0.9}
-          />
+  makeDefault
+  enableRotate={false}
+  enableZoom={true}
+  enablePan
+  screenSpacePanning
+  target={[0, 0, 0]}
+  panSpeed={0.9}
+  touches={{ ONE: THREE.TOUCH.PAN }}   // ✅ desactiva el pinch-to-zoom táctil
+/>
         )}
 
         {preview && !effectiveAutoRotate && !isMobile && (
