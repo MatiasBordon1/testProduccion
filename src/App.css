@@ -230,31 +230,37 @@ body {
   .popup-reserva {
     left: 0;
     width: 100vw;
-    height: 100vh;
+    min-height: 100dvh; /* ✅ usa altura dinámica real del viewport (mejor en Safari) */
+    background: #f4f4f0;
     box-shadow: none;
-
-    /* 🔹 scroll total, pero más margen interno */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-
-    /* 🔹 más espacio arriba y abajo */
-    padding-top: 20px;
-    padding-bottom: 140px;
+    padding: 24px 16px 160px; /* ✅ más espacio inferior */
   }
 
-  /* 🔹 evita que se oculte contenido detrás de barras */
   .popup-reserva::-webkit-scrollbar {
-    width: 0; /* oculta scrollbar en iOS */
+    width: 0;
     background: transparent;
   }
 
-  /* 🔹 sin botón fijo, vuelve al estilo original */
+  /* 🔹 Asegura que el botón esté siempre visible */
   .popup-reserva button[type='submit'] {
-    position: static;
+    display: block;
     width: 100%;
-    margin-top: 20px;
-    border-radius: 8px;
+    margin-top: 32px;
+    margin-bottom: 24px;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 18px;
+    font-weight: 600;
     background-color: #111;
     color: #fff;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .popup-reserva button[type='submit']:active {
+    transform: scale(0.98);
   }
 }
