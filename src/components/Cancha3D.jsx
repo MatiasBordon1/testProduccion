@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { MapControls, Html } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { MapControls, Html, OrthographicCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
 import useIsMobile from '../hooks/useIsMobile';
@@ -12,10 +12,6 @@ import LoteMobileOverlay from './LoteMobileOverlay';
 import HockeyLines from './HockeyLines';
 import CanchaBase from './CanchaBase';
 import CameraController from './CameraController';
-
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 5;
-const ZOOM_STEP = 0.5;
 
 function Scene({
   isMobile,
@@ -61,7 +57,12 @@ function Scene({
   const mobileYRotation = isMobile ? Math.PI / 2 : 0;
 
   return (
-    <group ref={groupRef} position={groupPosition} scale={groupScale} rotation={[0, mobileYRotation, 0]}>
+    <group
+      ref={groupRef}
+      position={groupPosition}
+      scale={groupScale}
+      rotation={[0, mobileYRotation, 0]}
+    >
       <ambientLight intensity={0.6} />
       <directionalLight
         position={[60, 120, 80]}
@@ -77,8 +78,13 @@ function Scene({
         shadow-camera-bottom={-150}
         shadow-bias={-0.0002}
       />
-      <hemisphereLight skyColor={'#e3ecff'} groundColor={'#3f3f3f'} intensity={0.4} />
+      <hemisphereLight
+        skyColor={'#e3ecff'}
+        groundColor={'#3f3f3f'}
+        intensity={0.4}
+      />
 
+      {/* 🔳 Sombra bajo la cancha */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4, 0]} receiveShadow>
         <planeGeometry args={[400, 400]} />
         <shadowMaterial opacity={0.25} transparent />
@@ -88,7 +94,13 @@ function Scene({
       <CanchaBase />
       <HockeyLines />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} castShadow receiveShadow>
+      {/* 🟩 Piso base */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.05, 0]}
+        castShadow
+        receiveShadow
+      >
         <planeGeometry args={[91.4, 55]} />
         <meshStandardMaterial color="#b3a977" side={THREE.DoubleSide} />
       </mesh>
@@ -120,7 +132,11 @@ function Scene({
               setAutoRotate(false);
               const useId = idFromChild ?? lote.id;
               const pos = Array.isArray(worldPosFromChild)
-                ? [worldPosFromChild[0], worldPosFromChild[1] + 2.5, worldPosFromChild[2]]
+                ? [
+                    worldPosFromChild[0],
+                    worldPosFromChild[1] + 2.5,
+                    worldPosFromChild[2],
+                  ]
                 : [lote.position[0], 2.5, lote.position[2]];
               onPreviewRequest(useId, pos);
             }}
@@ -134,12 +150,27 @@ function Scene({
 function PopupHtml({ preview, topView, onClose, onReservar }) {
   if (!preview) return null;
 
-  const style = { pointerEvents: 'auto', transform: topView ? 'translate(-50%, -100%)' : undefined, zIndex: 999 };
+  const style = {
+    pointerEvents: 'auto',
+    transform: topView ? 'translate(-50%, -100%)' : undefined,
+    zIndex: 999,
+  };
   const factor = topView ? 35 : 15;
-  const position = [preview.position[0], preview.position[1] + (topView ? 0.0001 : 3.5), preview.position[2]];
+  const position = [
+    preview.position[0],
+    preview.position[1] + (topView ? 0.0001 : 3.5),
+    preview.position[2],
+  ];
 
   return (
-    <Html position={position} transform={!topView} center rotation={topView ? [Math.PI / 2, 0, 0] : undefined} distanceFactor={factor} style={style}>
+    <Html
+      position={position}
+      transform={!topView}
+      center
+      rotation={topView ? [Math.PI / 2, 0, 0] : undefined}
+      distanceFactor={factor}
+      style={style}
+    >
       <LoteTooltipCard
         lotId={preview.id}
         tier={preview.tier}
@@ -166,60 +197,33 @@ export default function Cancha3D({
 }) {
   const isMobile = useIsMobile();
   const [preview, setPreview] = useState(null);
+  const cameraRef = useRef(null);
+  const [zoomLevel, setZoomLevel] = useState(12);
 
   const effectiveTopView = isMobile ? true : topView;
   const [localAutoRotate, setLocalAutoRotate] = useState(false);
-  const effectiveAutoRotate = typeof autoRotate === 'boolean' ? autoRotate : localAutoRotate;
-  const effectiveSetAutoRotate = typeof setAutoRotate === 'function' ? setAutoRotate : setLocalAutoRotate;
+  const effectiveAutoRotate =
+    typeof autoRotate === 'boolean' ? autoRotate : localAutoRotate;
+  const effectiveSetAutoRotate =
+    typeof setAutoRotate === 'function' ? setAutoRotate : setLocalAutoRotate;
 
   useEffect(() => {
-    if (typeof effectiveAutoRotate === 'boolean' && typeof effectiveTopView === 'boolean') setPreview(null);
+    if (
+      typeof effectiveAutoRotate === 'boolean' &&
+      typeof effectiveTopView === 'boolean'
+    )
+      setPreview(null);
     if (contactOpen) setPreview(null);
   }, [!!effectiveAutoRotate, !!effectiveTopView, contactOpen]);
 
-  // 🔹 Escucha los eventos de zoom enviados desde App.jsx
-useEffect(() => {
-  const handleZoomEvent = (e) => {
-    const dir = e.detail?.dir;
-    const canvas = document.querySelector('canvas');
-    const camera = canvas?.__r3f?.root?.getState?.()?.camera;
-    const invalidate = canvas?.__r3f?.root?.getState?.()?.invalidate;
-
-    if (!camera) return;
-
-    if (camera.isOrthographicCamera) {
-      const minZoom = 4;
-      const maxZoom = 25;
-      const step = 1.5;
-
-      if (dir === 'in') {
-        camera.zoom = Math.min(maxZoom, camera.zoom + step);
-      } else if (dir === 'out') {
-        camera.zoom = Math.max(minZoom, camera.zoom - step);
-      }
-
-      camera.updateProjectionMatrix();
-      if (invalidate) invalidate(); // 🔥 fuerza render inmediato
-    }
-  };
-
-  window.addEventListener('app-zoom', handleZoomEvent);
-  return () => window.removeEventListener('app-zoom', handleZoomEvent);
-}, []);
-
-
+  // ✅ Control del zoom desde botones
   const handleZoomChange = (dir) => {
-  // Obtenemos el estado interno real de R3F
-  const state = window.__r3f?.root?.getState?.() || {};
-  const camera = state.camera;
-  const invalidate = state.invalidate;
+    if (!cameraRef.current) return;
+    const camera = cameraRef.current;
 
-  if (!camera) return;
-
-  if (camera.isOrthographicCamera) {
-    const minZoom = 2;
+    const minZoom = 4;
     const maxZoom = 25;
-    const step = 1;
+    const step = 1.5;
 
     if (dir === 'in') {
       camera.zoom = Math.min(maxZoom, camera.zoom + step);
@@ -228,17 +232,8 @@ useEffect(() => {
     }
 
     camera.updateProjectionMatrix();
-    if (invalidate) invalidate(); // 🔥 fuerza render inmediato
-  } else if (camera.isPerspectiveCamera) {
-    // backup en caso de usar perspectiva
-    if (dir === 'in') camera.position.y -= 10;
-    else if (dir === 'out') camera.position.y += 10;
-    camera.updateProjectionMatrix();
-    if (invalidate) invalidate();
-  }
-};
-
-
+    setZoomLevel(camera.zoom);
+  };
 
   const handleLotClickForPreview = (id, positionVec3) => {
     const tier = oroLotes.includes(id)
@@ -249,8 +244,17 @@ useEffect(() => {
     const isReserved = reservedLots.includes(id);
     const reservation = reservedDetails?.[id] ?? {};
     const displayName =
-      reservation?.mostrarComo || reservation?.displayName || reservation?.firstName || '';
-    setPreview({ id, position: positionVec3 || [0, 2.5, 0], tier, reserved: isReserved, displayName });
+      reservation?.mostrarComo ||
+      reservation?.displayName ||
+      reservation?.firstName ||
+      '';
+    setPreview({
+      id,
+      position: positionVec3 || [0, 2.5, 0],
+      tier,
+      reserved: isReserved,
+      displayName,
+    });
   };
 
   const startReservationFromPreview = () => {
@@ -264,10 +268,6 @@ useEffect(() => {
       <Canvas
         shadows
         camera={{ position: [0, 110, 175], fov: 45 }}
-        onCreated={({ camera }) => {
-          camera.position.set(0, 110, 175);
-          camera.lookAt(0, 0, 0);
-        }}
         style={{ width: '100%', height: '100vh', touchAction: 'none' }}
       >
         <Scene
@@ -284,20 +284,33 @@ useEffect(() => {
           onPreviewRequest={handleLotClickForPreview}
         />
 
-        {/* ✅ Movimiento táctil solo en móviles */}
+        {/* ✅ Cámara ortográfica + paneo solo en móvil */}
         {isMobile && (
-          <MapControls
-  makeDefault
-  enableRotate={false}
-  enableZoom={true}
-  enablePan
-  screenSpacePanning
-  target={[0, 0, 0]}
-  panSpeed={0.9}
-  touches={{ ONE: THREE.TOUCH.PAN }}   // ✅ desactiva el pinch-to-zoom táctil
-/>
+          <>
+            <OrthographicCamera
+              ref={cameraRef}
+              makeDefault
+              position={[0, 100, 0.1]}
+              up={[0, 0, -1]}
+              zoom={zoomLevel}
+              near={0.1}
+              far={1000}
+              onUpdate={(c) => c.lookAt(0, 0, 0)}
+            />
+            <MapControls
+              makeDefault
+              enableRotate={false}
+              enableZoom={true}
+              enablePan
+              screenSpacePanning
+              target={[0, 0, 0]}
+              panSpeed={0.9}
+              touches={{ ONE: THREE.TOUCH.PAN }}
+            />
+          </>
         )}
 
+        {/* Popup desktop */}
         {preview && !effectiveAutoRotate && !isMobile && (
           <PopupHtml
             preview={preview}
@@ -317,7 +330,7 @@ useEffect(() => {
         />
       )}
 
-      {/* ✅ Botones de zoom SOLO móviles */}
+      {/* ✅ Botones de zoom solo móviles */}
       {isMobile && (
         <div className="zoom-buttons mobile-only">
           <button onClick={() => handleZoomChange('out')}>−</button>
