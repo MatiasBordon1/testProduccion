@@ -30,31 +30,41 @@ const PopupReserva = ({ selectedLot, onReserve, reservedLots, onClose, reservati
     }
   }, [formData.anonymous]);
 
-  // ✅ Bloquea el scroll del fondo mientras el popup está abierto
-  useEffect(() => {
-    if (!selectedLot) return;
+  // ✅ Bloquea el scroll del fondo mientras el popup está abierto (versión corregida)
+useEffect(() => {
+  if (!selectedLot) return;
 
-    const body = document.body;
-    const html = document.documentElement;
-    const scrollY = window.scrollY || window.pageYOffset;
+  const body = document.body;
+  const html = document.documentElement;
 
-    html.classList.add('popup-open');
-    body.style.position = 'fixed';
-    body.style.top = `-${scrollY}px`;
-    body.style.left = '0';
-    body.style.right = '0';
-    body.style.width = '100%';
+  // Guardamos el desplazamiento actual
+  const scrollY = window.scrollY || window.pageYOffset;
+  html.classList.add('popup-open');
 
-    return () => {
-      html.classList.remove('popup-open');
-      body.style.position = '';
-      body.style.top = '';
-      body.style.left = '';
-      body.style.right = '';
-      body.style.width = '';
-      window.scrollTo(0, scrollY);
-    };
-  }, [selectedLot]);
+  // Fijamos el body (bloquea scroll del fondo)
+  body.style.position = 'fixed';
+  body.style.top = `-${scrollY}px`;
+  body.style.left = '0';
+  body.style.right = '0';
+  body.style.width = '100%';
+  body.style.overflowY = 'hidden';
+
+  return () => {
+    // Restauramos estilos y posición
+    html.classList.remove('popup-open');
+    body.style.position = '';
+    body.style.top = '';
+    body.style.left = '';
+    body.style.right = '';
+    body.style.width = '';
+    body.style.overflowY = '';
+
+    // Restauramos el scroll con un microdelay (Safari fix)
+    setTimeout(() => {
+      window.scrollTo({ top: scrollY, behavior: 'auto' });
+    }, 10);
+  };
+}, [selectedLot]);
 
   if (!selectedLot) return null;
 

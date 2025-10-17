@@ -114,15 +114,14 @@ body {
   }
 }
 
-
 /* =========================
    Botones de zoom (móviles)
    ========================= */
 .zoom-buttons {
   display: none; /* ✅ ocultos por defecto */
   position: absolute;
-  bottom: calc(80px + env(safe-area-inset-bottom)); /* ⬆️ antes estaba 18px */
-  right: calc(16px + env(safe-area-inset-right));
+  bottom: clamp(120px, 12vh, 180px); /* 🔼 más arriba */
+  right: calc(18px + env(safe-area-inset-right));
   z-index: 10000;
   flex-direction: column;
   gap: 10px;
@@ -165,14 +164,6 @@ body {
 @media (max-width: 768px) {
   .zoom-buttons {
     display: flex;
-  }
-}
-
-/* Subimos un poco el arranque de los botones en móviles */
-@media (max-width: 768px) {
-  .zoom-buttons {
-    bottom: clamp(88px, 10vh, 140px); /* más arriba y adaptable */
-    right: calc(16px + env(safe-area-inset-right));
   }
 }
 
