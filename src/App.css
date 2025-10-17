@@ -233,34 +233,28 @@ body {
     height: 100vh;
     box-shadow: none;
 
-    /* 🔹 Nueva estructura interna con scroll */
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* 🔹 El formulario será scrolleable */
-  .popup-reserva form {
-    flex: 1;
+    /* 🔹 scroll total, pero más margen interno */
     overflow-y: auto;
-    padding-bottom: 90px; /* espacio para el botón fijo */
     -webkit-overflow-scrolling: touch;
+
+    /* 🔹 más espacio arriba y abajo */
+    padding-top: 20px;
+    padding-bottom: 140px;
   }
 
-  /* 🔹 Botón de Reservar fijo abajo */
+  /* 🔹 evita que se oculte contenido detrás de barras */
+  .popup-reserva::-webkit-scrollbar {
+    width: 0; /* oculta scrollbar en iOS */
+    background: transparent;
+  }
+
+  /* 🔹 sin botón fijo, vuelve al estilo original */
   .popup-reserva button[type='submit'] {
-    position: fixed;
-    bottom: 0;
-    left: 0;
+    position: static;
     width: 100%;
-    height: 64px;
-    font-size: 18px;
-    font-weight: 600;
+    margin-top: 20px;
+    border-radius: 8px;
+    background-color: #111;
     color: #fff;
-    background: #333;
-    border: none;
-    border-top: 2px solid rgba(255,255,255,0.15);
-    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.25);
-    z-index: 99999;
   }
 }
