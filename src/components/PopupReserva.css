@@ -71,14 +71,17 @@
 }
 
 .popup-reserva.bronce .lot-info {
-  background: #7a6244;
+  background: var(--bronce-color);
+  color: #fff;
 }
+
 .popup-reserva.plata .lot-info {
-  background: linear-gradient(135deg, #d9d7ce, #bcb9ae);
+  background: var(--plata-color);
   color: #000;
 }
+
 .popup-reserva.oro .lot-info {
-  background: #e2c15c;
+  background: var(--oro-color);
   color: #000;
 }
 
@@ -120,15 +123,19 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+/* Campos por tier usando variables */
 .popup-reserva.bronce .reservation-form input {
-  background: #7a6244;
+  background: var(--bronce-color);
+  color: #fff;
 }
+
 .popup-reserva.plata .reservation-form input {
-  background: linear-gradient(135deg, #d9d7ce, #bcb9ae);
+  background: var(--plata-color);
   color: #000;
 }
+
 .popup-reserva.oro .reservation-form input {
-  background: #e2c15c;
+  background: var(--oro-color);
   color: #000;
 }
 
@@ -158,21 +165,25 @@
 
 .reserve-btn:disabled { opacity: 0.6; cursor: default; }
 
-.reserve-btn.bronce {
-  background: #7a6244;
+/* 🎨 Botón dinámico por tier con variables */
+.popup-reserva.bronce .reserve-btn {
+  background: var(--bronce-color);
   color: #fff;
 }
-.reserve-btn.plata {
-  background: linear-gradient(135deg, #d9d7ce, #bcb9ae);
+
+.popup-reserva.plata .reserve-btn {
+  background: var(--plata-color);
   color: #000;
 }
-.reserve-btn.oro {
-  background: #e2c15c;
+
+.popup-reserva.oro .reserve-btn {
+  background: var(--oro-color);
   color: #000;
 }
 
 .reserve-btn:hover {
   transform: translateY(-2px);
+  filter: brightness(0.95);
 }
 
 /* Spinner */
@@ -195,5 +206,6 @@
     width: 100vw;
     height: 100vh;
     box-shadow: none;
+    -webkit-overflow-scrolling: touch;
   }
 }

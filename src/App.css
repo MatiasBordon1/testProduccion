@@ -114,13 +114,14 @@ body {
   }
 }
 
+
 /* =========================
-   Botones de zoom
+   Botones de zoom (móviles)
    ========================= */
 .zoom-buttons {
   display: none; /* ✅ ocultos por defecto */
   position: absolute;
-  bottom: calc(18px + env(safe-area-inset-bottom));
+  bottom: calc(80px + env(safe-area-inset-bottom)); /* ⬆️ antes estaba 18px */
   right: calc(16px + env(safe-area-inset-right));
   z-index: 10000;
   flex-direction: column;
