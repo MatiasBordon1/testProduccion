@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import * as THREE from 'three';
-import { Text } from '@react-three/drei';
+import { Text, useLoader } from '@react-three/drei';
 import { useSpring, animated } from '@react-spring/three';
-import { useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import './Lote.css';
 
@@ -21,6 +20,9 @@ const Lote = ({
   isSelected,
   tier = 'bronce',
 }) => {
+  const [pointerStart, setPointerStart] = useState(null);
+  const MOVE_THRESHOLD = 5; // tolerancia de movimiento táctil
+
   const { scale } = useSpring({
     scale: isSelected ? 1.1 : 1,
     config: { tension: 150, friction: 12 },
@@ -35,9 +37,9 @@ const Lote = ({
   // 🔹 Texto o nombre mostrado
   const displayLabel = isReserved
     ? (reservation?.mostrarComo ||
-       reservation?.MostrarComo ||
-       reservation?.displayName ||
-       'Reservado')
+        reservation?.MostrarComo ||
+        reservation?.displayName ||
+        'Reservado')
     : index;
 
   // 🔹 Color del corazón según tier
@@ -52,7 +54,7 @@ const Lote = ({
   // 🔹 Cargar textura del corazón
   const heartTexture = useLoader(TextureLoader, heartSrc);
 
-  // 🧠 Mejorar nitidez y contraste
+  // 🧠 Mejora de calidad
   heartTexture.minFilter = THREE.LinearFilter;
   heartTexture.magFilter = THREE.NearestFilter;
   heartTexture.anisotropy = 16;
@@ -77,17 +79,27 @@ const Lote = ({
         receiveShadow
         renderOrder={1}
         onPointerDown={(e) => {
-          e.stopPropagation();
-          const box = new THREE.Box3().setFromObject(e.object);
-          const center = new THREE.Vector3();
-          box.getCenter(center);
-          center.y = BASE_Y + 0.2;
-          console.log(
-            `🟢 Click detectado en lote ${index} (${isReserved ? 'RESERVADO' : 'disponible'})`,
-            'Posición:',
-            [center.x, center.y, center.z]
-          );
-          onLoteClick(index, [center.x, center.y, center.z]);
+          // Guardar posición inicial del toque
+          setPointerStart({ x: e.clientX, y: e.clientY });
+        }}
+        onPointerUp={(e) => {
+          if (
+            pointerStart &&
+            Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y) <
+              MOVE_THRESHOLD
+          ) {
+            e.stopPropagation();
+            const box = new THREE.Box3().setFromObject(e.object);
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            center.y = BASE_Y + 0.2;
+            console.log(
+              `🟢 Click detectado en lote ${index} (${isReserved ? 'RESERVADO' : 'disponible'})`,
+              'Posición:',
+              [center.x, center.y, center.z]
+            );
+            onLoteClick(index, [center.x, center.y, center.z]);
+          }
         }}
         style={{ cursor: 'pointer' }}
       >
@@ -103,7 +115,7 @@ const Lote = ({
       {/* ==== CORAZÓN 3D CON TEXTURA ==== */}
       {!showLotes && isReserved && (
         <mesh
-          position={[0, 0.01, 0]}
+          position={[0, 0.25, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
           renderOrder={2}
           raycast={null}
