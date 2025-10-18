@@ -109,3 +109,12 @@
     font-size: 3rem;
   }
 }
+
+/* Evita que los corazones HTML intercepten clics o toques */
+.no-events {
+  pointer-events: none !important;
+  user-select: none !important;
+  touch-action: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+}

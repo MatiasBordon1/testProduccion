@@ -1,3 +1,4 @@
+// src/components/Cancha3D.jsx
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { MapControls, Html, OrthographicCamera } from '@react-three/drei';
@@ -19,6 +20,7 @@ function Scene({
   autoRotate,
   setAutoRotate,
   showLotes,
+  lotesCargados,
   activeTiers,
   onSelectLot,
   reservedLots,
@@ -34,17 +36,16 @@ function Scene({
     }
   }, [autoRotate, isMobile]);
 
-  const lotes = useMemo(
-    () =>
-      crearLotes({
-        colorBase: getColor,
-        onClick: (id) => onSelectLot(id),
-        showLotes,
-        activeTiers,
-        reservedLots,
-      }),
-    [showLotes, activeTiers, onSelectLot, reservedLots]
-  );
+  const lotes = useMemo(() => {
+    if (!lotesCargados) return []; // no renderizar hasta que “estén cargados”
+    return crearLotes({
+      colorBase: getColor,
+      onClick: (id) => onSelectLot(id),
+      showLotes,
+      activeTiers,
+      reservedLots,
+    });
+  }, [lotesCargados, showLotes, activeTiers, onSelectLot, reservedLots]);
 
   useFrame(() => {
     if (!topView && !isMobile && autoRotate && groupRef.current) {
@@ -52,6 +53,7 @@ function Scene({
     }
   });
 
+  // ⚠️ Mantenemos EXACTO lo que tenías:
   const groupPosition = isMobile ? [0, 0, 0] : [-3, 0, 0];
   const groupScale = isMobile ? [1, 1, 1] : [0.8, 0.8, 0.8];
   const mobileYRotation = isMobile ? Math.PI / 2 : 0;
@@ -84,27 +86,39 @@ function Scene({
         intensity={0.4}
       />
 
-      {/* 🔳 Sombra bajo la cancha */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4, 0]} receiveShadow>
+      {/* 🔳 Sombra bajo la cancha — NO interactiva */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -4, 0]}
+        receiveShadow
+        raycast={null}                        // ⛔ excluida del picking
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <planeGeometry args={[400, 400]} />
         <shadowMaterial opacity={0.25} transparent />
       </mesh>
 
-      <CameraController topView={topView} />
-      <CanchaBase />
-      <HockeyLines />
+      {/* ✅ Estos grupos no deben “capturar” clics */}
+      <group raycast={null} onPointerDown={(e) => e.stopPropagation()}>
+        <CameraController topView={topView} />
+        <CanchaBase />
+        <HockeyLines />
+      </group>
 
-      {/* 🟩 Piso base */}
+      {/* 🟩 Piso base — NO interactivo */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, 0.05, 0]}
         castShadow
         receiveShadow
+        raycast={null}                        // ⛔ excluida del picking
+        onPointerDown={(e) => e.stopPropagation()}
       >
         <planeGeometry args={[91.4, 55]} />
         <meshStandardMaterial color="#b3a977" side={THREE.DoubleSide} />
       </mesh>
 
+      {/* ✅ ÚNICOS elementos clickeables: los Lotes */}
       {lotes.map((lote) => {
         const y = 1;
         const isReserved = reservedLots.includes(lote.id);
@@ -127,19 +141,26 @@ function Scene({
             isSelected={lote.id === selectedLotId}
             tier={tier}
             enableHover
+            // forzamos que el click en el lote no “resbale” al fondo
             onLoteClick={(idFromChild, worldPosFromChild) => {
-              if (!groupRef.current) return;
-              setAutoRotate(false);
-              const useId = idFromChild ?? lote.id;
-              const pos = Array.isArray(worldPosFromChild)
-                ? [
-                    worldPosFromChild[0],
-                    worldPosFromChild[1] + 2.5,
-                    worldPosFromChild[2],
-                  ]
-                : [lote.position[0], 2.5, lote.position[2]];
-              onPreviewRequest(useId, pos);
-            }}
+  if (!groupRef.current) return;
+  setAutoRotate(false);
+  const useId = idFromChild ?? lote.id;
+  const pos = Array.isArray(worldPosFromChild)
+    ? [worldPosFromChild[0], worldPosFromChild[1] + 2.5, worldPosFromChild[2]]
+    : [lote.position[0], 2.5, lote.position[2]];
+
+  // 🟢 LOG de depuración para verificar clics
+  const reservado = reservedLots.includes(useId);
+  console.log(
+    `🟢 Click detectado en lote ${useId} (${reservado ? 'RESERVADO' : 'disponible'})`,
+    'Posición:',
+    pos
+  );
+
+  onPreviewRequest(useId, pos);
+}}
+
           />
         );
       })}
@@ -185,6 +206,7 @@ function PopupHtml({ preview, topView, onClose, onReservar }) {
 
 export default function Cancha3D({
   showLotes,
+  lotesCargados, // precarga
   topView,
   activeTiers,
   autoRotate,
@@ -208,15 +230,12 @@ export default function Cancha3D({
     typeof setAutoRotate === 'function' ? setAutoRotate : setLocalAutoRotate;
 
   useEffect(() => {
-    if (
-      typeof effectiveAutoRotate === 'boolean' &&
-      typeof effectiveTopView === 'boolean'
-    )
+    if (typeof effectiveAutoRotate === 'boolean' && typeof effectiveTopView === 'boolean')
       setPreview(null);
     if (contactOpen) setPreview(null);
   }, [!!effectiveAutoRotate, !!effectiveTopView, contactOpen]);
 
-  // ✅ Control del zoom desde botones
+  // 🔍 Zoom de botones (móvil)
   const handleZoomChange = (dir) => {
     if (!cameraRef.current) return;
     const camera = cameraRef.current;
@@ -236,18 +255,11 @@ export default function Cancha3D({
   };
 
   const handleLotClickForPreview = (id, positionVec3) => {
-    const tier = oroLotes.includes(id)
-      ? 'oro'
-      : plataLotes.includes(id)
-      ? 'plata'
-      : 'bronce';
+    const tier = oroLotes.includes(id) ? 'oro' : plataLotes.includes(id) ? 'plata' : 'bronce';
     const isReserved = reservedLots.includes(id);
     const reservation = reservedDetails?.[id] ?? {};
     const displayName =
-      reservation?.mostrarComo ||
-      reservation?.displayName ||
-      reservation?.firstName ||
-      '';
+      reservation?.mostrarComo || reservation?.displayName || reservation?.firstName || '';
     setPreview({
       id,
       position: positionVec3 || [0, 2.5, 0],
@@ -265,6 +277,7 @@ export default function Cancha3D({
 
   return (
     <div className={`canvas-wrapper ${selectedLot ? 'shift-left' : ''}`}>
+      {/* ⚠️ Cámara y FOV EXACTOS a tu versión */}
       <Canvas
         shadows
         camera={{ position: [0, 110, 175], fov: 45 }}
@@ -276,6 +289,7 @@ export default function Cancha3D({
           autoRotate={effectiveAutoRotate}
           setAutoRotate={effectiveSetAutoRotate}
           showLotes={showLotes}
+          lotesCargados={lotesCargados}
           activeTiers={activeTiers}
           onSelectLot={onSelectLot}
           reservedLots={reservedLots}
@@ -284,7 +298,7 @@ export default function Cancha3D({
           onPreviewRequest={handleLotClickForPreview}
         />
 
-        {/* ✅ Cámara ortográfica + paneo solo en móvil */}
+        {/* ✅ Cámara ortográfica + paneo solo en móvil (sin cambios visuales) */}
         {isMobile && (
           <>
             <OrthographicCamera
@@ -330,7 +344,7 @@ export default function Cancha3D({
         />
       )}
 
-      {/* ✅ Botones de zoom solo móviles */}
+      {/* Botones de zoom solo móviles */}
       {isMobile && (
         <div className="zoom-buttons mobile-only">
           <button onClick={() => handleZoomChange('out')}>−</button>
