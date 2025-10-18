@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import * as THREE from 'three';
-import { Text, useLoader } from '@react-three/drei';
+import { Text } from '@react-three/drei';
+import { useLoader } from '@react-three/fiber';
 import { useSpring, animated } from '@react-spring/three';
 import { TextureLoader } from 'three';
 import './Lote.css';
