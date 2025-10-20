@@ -54,8 +54,6 @@ const Lote = ({
 
   // 🔹 Cargar textura del corazón
   const heartTexture = useLoader(TextureLoader, heartSrc);
-
-  // 🧠 Mejora de calidad
   heartTexture.minFilter = THREE.LinearFilter;
   heartTexture.magFilter = THREE.NearestFilter;
   heartTexture.anisotropy = 16;
@@ -79,16 +77,26 @@ const Lote = ({
         castShadow
         receiveShadow
         renderOrder={1}
+        // 🟢 Inicio táctil (soporte Android / iOS)
         onPointerDown={(e) => {
-          // Guardar posición inicial del toque
-          setPointerStart({ x: e.clientX, y: e.clientY });
+          const x = e.clientX ?? e.touches?.[0]?.clientX;
+          const y = e.clientY ?? e.touches?.[0]?.clientY;
+          setPointerStart({ x, y });
         }}
+        // 🟢 Fin táctil (previene falsos clics en Android)
         onPointerUp={(e) => {
-          if (
-            pointerStart &&
-            Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y) <
-              MOVE_THRESHOLD
-          ) {
+          const upX = e.clientX ?? e.changedTouches?.[0]?.clientX;
+          const upY = e.clientY ?? e.changedTouches?.[0]?.clientY;
+
+          if (!pointerStart || upX == null || upY == null) return;
+
+          const movedDistance = Math.hypot(upX - pointerStart.x, upY - pointerStart.y);
+          const movedTooMuch = movedDistance > MOVE_THRESHOLD;
+          const movedByMotion =
+            Math.abs(e.movementX || 0) > 3 || Math.abs(e.movementY || 0) > 3;
+
+          // ✅ Solo si fue un tap limpio (sin movimiento)
+          if (!movedTooMuch && !movedByMotion) {
             e.stopPropagation();
             const box = new THREE.Box3().setFromObject(e.object);
             const center = new THREE.Vector3();
