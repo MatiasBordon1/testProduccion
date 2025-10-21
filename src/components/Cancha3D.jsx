@@ -220,7 +220,7 @@ export default function Cancha3D({
   const isMobile = useIsMobile();
   const [preview, setPreview] = useState(null);
   const cameraRef = useRef(null);
- const [zoomLevel, setZoomLevel] = useState(isMobile ? 7 : 12); // 🔭 vista inicial más alejada en móvil
+ const [zoomLevel, setZoomLevel] = useState(isMobile ? 3.5 : 12); // 🔭 vista inicial más alejada en móvil
 
 
   const effectiveTopView = isMobile ? true : topView;
