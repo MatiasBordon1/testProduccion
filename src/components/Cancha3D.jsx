@@ -220,7 +220,8 @@ export default function Cancha3D({
   const isMobile = useIsMobile();
   const [preview, setPreview] = useState(null);
   const cameraRef = useRef(null);
-  const [zoomLevel, setZoomLevel] = useState(12);
+ const [zoomLevel, setZoomLevel] = useState(isMobile ? 7 : 12); // 🔭 vista inicial más alejada en móvil
+
 
   const effectiveTopView = isMobile ? true : topView;
   const [localAutoRotate, setLocalAutoRotate] = useState(false);
@@ -298,31 +299,32 @@ export default function Cancha3D({
           onPreviewRequest={handleLotClickForPreview}
         />
 
-        {/* ✅ Cámara ortográfica + paneo solo en móvil (sin cambios visuales) */}
-        {isMobile && (
-          <>
-            <OrthographicCamera
-              ref={cameraRef}
-              makeDefault
-              position={[0, 100, 0.1]}
-              up={[0, 0, -1]}
-              zoom={zoomLevel}
-              near={0.1}
-              far={1000}
-              onUpdate={(c) => c.lookAt(0, 0, 0)}
-            />
-            <MapControls
-              makeDefault
-              enableRotate={false}
-              enableZoom={true}
-              enablePan
-              screenSpacePanning
-              target={[0, 0, 0]}
-              panSpeed={0.9}
-              touches={{ ONE: THREE.TOUCH.PAN }}
-            />
-          </>
-        )}
+      {/* ✅ Cámara ortográfica + paneo solo en móvil */}
+{isMobile && (
+  <>
+    <OrthographicCamera
+      ref={cameraRef}
+      makeDefault
+      position={[0, 100, 0.1]}
+      up={[0, 0, -1]}
+      zoom={zoomLevel}   // 👈 volvemos a usar zoomLevel directamente
+      near={0.1}
+      far={1000}
+      onUpdate={(c) => c.lookAt(0, 0, 0)}
+    />
+    <MapControls
+      makeDefault
+      enableRotate={false}
+      enableZoom={false}   // 🚫 sin pellizco
+      enablePan
+      screenSpacePanning
+      target={[0, 0, 0]}
+      panSpeed={0.9}
+      touches={{ ONE: THREE.TOUCH.PAN }}
+    />
+  </>
+)}
+
 
         {/* Popup desktop */}
         {preview && !effectiveAutoRotate && !isMobile && (
