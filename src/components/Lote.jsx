@@ -45,7 +45,6 @@ const Lote = ({
 
   // 🔹 Color del corazón según tier
   const heartColor = reservation?.heartColor || (tier === 'oro' ? 'naranja' : 'celeste');
-
   const HEART_PATHS = {
     naranja: ['/assets/cancha/corazon_naranja.png', '/cancha/corazon_naranja.png'],
     celeste: ['/assets/cancha/corazon_azul.png', '/cancha/corazon_azul.png'],
@@ -72,65 +71,65 @@ const Lote = ({
     <group position={[x, isSelected ? BASE_Y + 0.5 : BASE_Y + 0.4, z]}>
       {/* ==== PLANO BASE DEL LOTE ==== */}
       <animated.mesh
-  rotation={[-Math.PI / 2, 0, 0]}
-  scale={scale}
-  castShadow
-  receiveShadow
-  renderOrder={1}
-  style={{ cursor: 'pointer' }}
-  onPointerDown={(e) => {
-    const x = e.clientX ?? e.touches?.[0]?.clientX;
-    const y = e.clientY ?? e.touches?.[0]?.clientY;
-    setPointerStart({ x, y, moved: false });
-  }}
-  onPointerMove={(e) => {
-    if (!pointerStart) return;
-    const moveX = e.clientX ?? e.touches?.[0]?.clientX;
-    const moveY = e.clientY ?? e.touches?.[0]?.clientY;
-    const movedDistance = Math.hypot(
-      moveX - pointerStart.x,
-      moveY - pointerStart.y
-    );
-    // Si se movió más de 8px, se marca como desplazamiento real
-    if (movedDistance > 8 && !pointerStart.moved) {
-      setPointerStart((p) => ({ ...p, moved: true }));
-    }
-  }}
-  onPointerCancel={() => setPointerStart(null)}
-  onPointerUp={(e) => {
-    const upX = e.clientX ?? e.changedTouches?.[0]?.clientX;
-    const upY = e.clientY ?? e.changedTouches?.[0]?.clientY;
-    if (!pointerStart || pointerStart.moved) return; // ❌ se movió, no es click
+        rotation={[-Math.PI / 2, 0, 0]}
+        scale={scale}
+        castShadow
+        receiveShadow
+        renderOrder={1}
+        style={{ cursor: 'pointer' }}
+        onPointerDown={(e) => {
+          const x = e.clientX ?? e.touches?.[0]?.clientX;
+          const y = e.clientY ?? e.touches?.[0]?.clientY;
+          setPointerStart({ x, y, moved: false });
+        }}
+        onPointerMove={(e) => {
+          if (!pointerStart) return;
+          const moveX = e.clientX ?? e.touches?.[0]?.clientX;
+          const moveY = e.clientY ?? e.touches?.[0]?.clientY;
+          const movedDistance = Math.hypot(moveX - pointerStart.x, moveY - pointerStart.y);
+          if (movedDistance > MOVE_THRESHOLD && !pointerStart.moved) {
+            setPointerStart((p) => ({ ...p, moved: true }));
+          }
+        }}
+        onPointerCancel={() => setPointerStart(null)}
+        onPointerUp={(e) => {
+          const upX = e.clientX ?? e.changedTouches?.[0]?.clientX;
+          const upY = e.clientY ?? e.changedTouches?.[0]?.clientY;
+          if (!pointerStart || pointerStart.moved) return;
 
-    const movedDistance = Math.hypot(
-      upX - pointerStart.x,
-      upY - pointerStart.y
-    );
+          const movedDistance = Math.hypot(upX - pointerStart.x, upY - pointerStart.y);
+          if (movedDistance <= MOVE_THRESHOLD) {
+            // 🚫 Bloqueo total de propagación táctil
+            e.stopPropagation();
+            if (e.nativeEvent?.stopImmediatePropagation)
+              e.nativeEvent.stopImmediatePropagation();
 
-    // ✅ Tap limpio real
-    if (movedDistance <= 8) {
-      e.stopPropagation();
-      const box = new THREE.Box3().setFromObject(e.object);
-      const center = new THREE.Vector3();
-      box.getCenter(center);
-      center.y = BASE_Y + 0.2;
-      console.log(
-        `🟢 Tap limpio en lote ${index} (${isReserved ? 'RESERVADO' : 'disponible'})`,
-        [center.x, center.y, center.z]
-      );
-      onLoteClick(index, [center.x, center.y, center.z]);
-    }
-  }}
->
-  <planeGeometry args={[width, depth]} />
-  <meshStandardMaterial
-    color={color}
-    transparent
-    opacity={showLotes ? 0.7 : 0}
-    depthWrite={showLotes}
-  />
-</animated.mesh>
+            // 🧠 Protección anti doble tap propagado
+            if (window.__loteTapLock && Date.now() - window.__loteTapLock < 300) return;
+            window.__loteTapLock = Date.now();
 
+            const box = new THREE.Box3().setFromObject(e.object);
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            center.y = BASE_Y + 0.2;
+
+            console.log(
+              `🟢 Tap limpio en lote ${index} (${isReserved ? 'RESERVADO' : 'disponible'})`,
+              [center.x, center.y, center.z]
+            );
+
+            onLoteClick(index, [center.x, center.y, center.z]);
+          }
+        }}
+      >
+        <planeGeometry args={[width, depth]} />
+        <meshStandardMaterial
+          color={color}
+          transparent
+          opacity={showLotes ? 0.7 : 0}
+          depthWrite={showLotes}
+        />
+      </animated.mesh>
 
       {/* ==== CORAZÓN 3D CON TEXTURA ==== */}
       {!showLotes && isReserved && (
