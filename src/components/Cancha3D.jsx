@@ -207,7 +207,7 @@ export default function Cancha3D({
   const isMobile = useIsMobile();
   const [preview, setPreview] = useState(null);
   const cameraRef = useRef(null);
-  const [zoomLevel, setZoomLevel] = useState(3.5);
+  const [zoomLevel, setZoomLevel] = useState(6);
 
   // 🔭 fijar zoom inicial y sincronizar al montar la cámara
   useEffect(() => {
