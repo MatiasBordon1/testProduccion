@@ -37,7 +37,7 @@ function Scene({
   }, [autoRotate, isMobile]);
 
   const lotes = useMemo(() => {
-    if (!lotesCargados) return []; // no renderizar hasta que “estén cargados”
+    if (!lotesCargados) return [];
     return crearLotes({
       colorBase: getColor,
       onClick: (id) => onSelectLot(id),
@@ -53,7 +53,6 @@ function Scene({
     }
   });
 
-  // ⚠️ Mantenemos EXACTO lo que tenías:
   const groupPosition = isMobile ? [0, 0, 0] : [-3, 0, 0];
   const groupScale = isMobile ? [1, 1, 1] : [0.8, 0.8, 0.8];
   const mobileYRotation = isMobile ? Math.PI / 2 : 0;
@@ -86,39 +85,35 @@ function Scene({
         intensity={0.4}
       />
 
-      {/* 🔳 Sombra bajo la cancha — NO interactiva */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -4, 0]}
         receiveShadow
-        raycast={null}                        // ⛔ excluida del picking
+        raycast={null}
         onPointerDown={(e) => e.stopPropagation()}
       >
         <planeGeometry args={[400, 400]} />
         <shadowMaterial opacity={0.25} transparent />
       </mesh>
 
-      {/* ✅ Estos grupos no deben “capturar” clics */}
       <group raycast={null} onPointerDown={(e) => e.stopPropagation()}>
         <CameraController topView={topView} />
         <CanchaBase />
         <HockeyLines />
       </group>
 
-      {/* 🟩 Piso base — NO interactivo */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, 0.05, 0]}
         castShadow
         receiveShadow
-        raycast={null}                        // ⛔ excluida del picking
+        raycast={null}
         onPointerDown={(e) => e.stopPropagation()}
       >
         <planeGeometry args={[91.4, 55]} />
         <meshStandardMaterial color="#b3a977" side={THREE.DoubleSide} />
       </mesh>
 
-      {/* ✅ ÚNICOS elementos clickeables: los Lotes */}
       {lotes.map((lote) => {
         const y = 1;
         const isReserved = reservedLots.includes(lote.id);
@@ -140,27 +135,19 @@ function Scene({
             scale={lote.scale}
             isSelected={lote.id === selectedLotId}
             tier={tier}
-            enableHover
-            // forzamos que el click en el lote no “resbale” al fondo
             onLoteClick={(idFromChild, worldPosFromChild) => {
-  if (!groupRef.current) return;
-  setAutoRotate(false);
-  const useId = idFromChild ?? lote.id;
-  const pos = Array.isArray(worldPosFromChild)
-    ? [worldPosFromChild[0], worldPosFromChild[1] + 2.5, worldPosFromChild[2]]
-    : [lote.position[0], 2.5, lote.position[2]];
-
-  // 🟢 LOG de depuración para verificar clics
-  const reservado = reservedLots.includes(useId);
-  console.log(
-    `🟢 Click detectado en lote ${useId} (${reservado ? 'RESERVADO' : 'disponible'})`,
-    'Posición:',
-    pos
-  );
-
-  onPreviewRequest(useId, pos);
-}}
-
+              if (!groupRef.current) return;
+              setAutoRotate(false);
+              const useId = idFromChild ?? lote.id;
+              const pos = Array.isArray(worldPosFromChild)
+                ? [
+                    worldPosFromChild[0],
+                    worldPosFromChild[1] + 2.5,
+                    worldPosFromChild[2],
+                  ]
+                : [lote.position[0], 2.5, lote.position[2]];
+              onPreviewRequest(useId, pos);
+            }}
           />
         );
       })}
@@ -206,7 +193,7 @@ function PopupHtml({ preview, topView, onClose, onReservar }) {
 
 export default function Cancha3D({
   showLotes,
-  lotesCargados, // precarga
+  lotesCargados,
   topView,
   activeTiers,
   autoRotate,
@@ -220,8 +207,17 @@ export default function Cancha3D({
   const isMobile = useIsMobile();
   const [preview, setPreview] = useState(null);
   const cameraRef = useRef(null);
- const [zoomLevel, setZoomLevel] = useState(isMobile ? 3.5 : 12); // 🔭 vista inicial más alejada en móvil
+  const [zoomLevel, setZoomLevel] = useState(3.5);
 
+  // 🔭 fijar zoom inicial y sincronizar al montar la cámara
+  useEffect(() => {
+    if (cameraRef.current) {
+      const targetZoom = isMobile ? 3.5 : 12;
+      cameraRef.current.zoom = targetZoom;
+      cameraRef.current.updateProjectionMatrix();
+      setZoomLevel(targetZoom);
+    }
+  }, [isMobile]);
 
   const effectiveTopView = isMobile ? true : topView;
   const [localAutoRotate, setLocalAutoRotate] = useState(false);
@@ -231,36 +227,39 @@ export default function Cancha3D({
     typeof setAutoRotate === 'function' ? setAutoRotate : setLocalAutoRotate;
 
   useEffect(() => {
-    if (typeof effectiveAutoRotate === 'boolean' && typeof effectiveTopView === 'boolean')
-      setPreview(null);
     if (contactOpen) setPreview(null);
-  }, [!!effectiveAutoRotate, !!effectiveTopView, contactOpen]);
+  }, [contactOpen]);
 
-  // 🔍 Zoom de botones (móvil)
-  const handleZoomChange = (dir) => {
-    if (!cameraRef.current) return;
-    const camera = cameraRef.current;
+const handleZoomChange = (dir) => {
+  if (!cameraRef.current) return;
+  const camera = cameraRef.current;
 
-    const minZoom = 4;
-    const maxZoom = 25;
-    const step = 1.5;
+  const minZoom = 3;
+  const maxZoom = 25;
+  const step = 1.5;
 
-    if (dir === 'in') {
-      camera.zoom = Math.min(maxZoom, camera.zoom + step);
-    } else if (dir === 'out') {
-      camera.zoom = Math.max(minZoom, camera.zoom - step);
-    }
+  let newZoom = camera.zoom;
+  if (dir === 'in') newZoom = Math.min(maxZoom, newZoom + step);
+  else if (dir === 'out') newZoom = Math.max(minZoom, newZoom - step);
 
-    camera.updateProjectionMatrix();
-    setZoomLevel(camera.zoom);
-  };
+  camera.zoom = newZoom;
+  camera.updateProjectionMatrix();
+  setZoomLevel(newZoom); // sólo sigue, no controla
+};
 
   const handleLotClickForPreview = (id, positionVec3) => {
-    const tier = oroLotes.includes(id) ? 'oro' : plataLotes.includes(id) ? 'plata' : 'bronce';
+    const tier = oroLotes.includes(id)
+      ? 'oro'
+      : plataLotes.includes(id)
+      ? 'plata'
+      : 'bronce';
     const isReserved = reservedLots.includes(id);
     const reservation = reservedDetails?.[id] ?? {};
     const displayName =
-      reservation?.mostrarComo || reservation?.displayName || reservation?.firstName || '';
+      reservation?.mostrarComo ||
+      reservation?.displayName ||
+      reservation?.firstName ||
+      '';
     setPreview({
       id,
       position: positionVec3 || [0, 2.5, 0],
@@ -278,7 +277,6 @@ export default function Cancha3D({
 
   return (
     <div className={`canvas-wrapper ${selectedLot ? 'shift-left' : ''}`}>
-      {/* ⚠️ Cámara y FOV EXACTOS a tu versión */}
       <Canvas
         shadows
         camera={{ position: [0, 110, 175], fov: 45 }}
@@ -299,34 +297,34 @@ export default function Cancha3D({
           onPreviewRequest={handleLotClickForPreview}
         />
 
-      {/* ✅ Cámara ortográfica + paneo solo en móvil */}
-{isMobile && (
-  <>
-    <OrthographicCamera
-      ref={cameraRef}
-      makeDefault
-      position={[0, 100, 0.1]}
-      up={[0, 0, -1]}
-      zoom={zoomLevel}   // 👈 volvemos a usar zoomLevel directamente
-      near={0.1}
-      far={1000}
-      onUpdate={(c) => c.lookAt(0, 0, 0)}
-    />
-    <MapControls
-      makeDefault
-      enableRotate={false}
-      enableZoom={false}   // 🚫 sin pellizco
-      enablePan
-      screenSpacePanning
-      target={[0, 0, 0]}
-      panSpeed={0.9}
-      touches={{ ONE: THREE.TOUCH.PAN }}
-    />
-  </>
-)}
+        {isMobile && (
+          <>
+            <OrthographicCamera
+  ref={cameraRef}
+  makeDefault
+  position={[0, 90, 0.1]} // podés subir o bajar el 100
+  up={[0, 0, -1]}
+  zoom={zoomLevel}
+  near={0.1}
+  far={1000}
+  onUpdate={(c) => {
+    // ⚠️ eliminamos el chequeo c.zoom !== zoomLevel
+    c.lookAt(0, 0, 0);
+  }}
+/>
+            <MapControls
+              makeDefault
+              enableRotate={false}
+              enableZoom={false}
+              enablePan
+              screenSpacePanning
+              target={[0, 0, 0]}
+              panSpeed={0.9}
+              touches={{ ONE: THREE.TOUCH.PAN }}
+            />
+          </>
+        )}
 
-
-        {/* Popup desktop */}
         {preview && !effectiveAutoRotate && !isMobile && (
           <PopupHtml
             preview={preview}
@@ -337,7 +335,6 @@ export default function Cancha3D({
         )}
       </Canvas>
 
-      {/* Popup móvil */}
       {isMobile && preview && (
         <LoteMobileOverlay
           preview={preview}
@@ -346,7 +343,6 @@ export default function Cancha3D({
         />
       )}
 
-      {/* Botones de zoom solo móviles */}
       {isMobile && (
         <div className="zoom-buttons mobile-only">
           <button onClick={() => handleZoomChange('out')}>−</button>
